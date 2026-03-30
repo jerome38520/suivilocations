@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suivi des Relocations</title>
+
+<!-- ============================================================
+  ÉTAPE 1 : Remplacez les valeurs ci-dessous par vos infos Firebase
+  (voir les instructions fournies avec ce fichier)
+============================================================ -->
+<script>
+  const FIREBASE_CONFIG = {
+    apiKey:            "VOTRE-API-KEY",
+    authDomain:        "VOTRE-PROJECT-ID.firebaseapp.com",
+    databaseURL:       "https://VOTRE-PROJECT-ID-default-rtdb.firebaseio.com",
+    projectId:         "VOTRE-PROJECT-ID",
+    storageBucket:     "VOTRE-PROJECT-ID.appspot.com",
+    messagingSenderId: "VOTRE-SENDER-ID",
+    appId:             "VOTRE-APP-ID"
+  };
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+:root{
+  --bg:#fff;--bg2:#f5f5f3;--bg3:#efefec;
+  --text:#1a1a18;--text2:#6b6b67;--text3:#9b9b96;
+  --bd:rgba(0,0,0,0.12);--bd2:rgba(0,0,0,0.24);
+  --r:8px;--rl:12px;--fn:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --g-bg:#EAF3DE;--g:#3B6D11;--g-bd:#97C459;
+  --o-bg:#FAEEDA;--o:#854F0B;--o-bd:#EF9F27;
+  --r-bg:#FCEBEB;--rd:#A32D2D;--r-bd:#E24B4A;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1c1c1a;--bg2:#262624;--bg3:#2e2e2b;
+  --text:#f0efe8;--text2:#a0a09a;--text3:#6a6a64;
+  --bd:rgba(255,255,255,0.1);--bd2:rgba(255,255,255,0.22);
+  --g-bg:#173404;--g:#C0DD97;--g-bd:#3B6D11;
+  --o-bg:#412402;--o:#FAC775;--o-bd:#854F0B;
+  --r-bg:#501313;--rd:#F7C1C1;--r-bd:#A32D2D;
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fn);background:var(--bg3);color:var(--text);min-height:100vh}
+.app{max-width:1100px;margin:0 auto;padding:1.5rem 1rem}
+.status-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:var(--r);font-size:12px;margin-bottom:1.25rem;border:0.5px solid var(--bd)}
+.sdot-c{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.conn-ok{background:var(--g-bg);border-color:var(--g-bd);color:var(--g)}
+.conn-ok .sdot-c{background:#639922}
+.conn-err{background:var(--r-bg);border-color:var(--r-bd);color:var(--rd)}
+.conn-err .sdot-c{background:#E24B4A}
+.conn-wait{background:var(--o-bg);border-color:var(--o-bd);color:var(--o)}
+.conn-wait .sdot-c{background:#BA7517;animation:pl 1.2s infinite}
+@keyframes pl{0%,100%{opacity:1}50%{opacity:.3}}
+.app-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:.25rem}
+.app-sub{font-size:13px;color:var(--text2);margin-bottom:1.5rem}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem}
+.stat{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--rl);padding:14px 16px}
+.stat-label{font-size:12px;color:var(--text2)}
+.stat-num{font-size:28px;font-weight:700;margin-top:2px}
+.green{color:var(--g)}.orange{color:var(--o)}.red{color:var(--rd)}
+.tabs{display:flex;border-bottom:1px solid var(--bd);margin-bottom:1.25rem}
+.tab{padding:9px 18px;font-size:13px;cursor:pointer;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;font-family:var(--fn)}
+.tab.active{color:var(--text);font-weight:700;border-bottom-color:var(--text)}
+.tab:hover{color:var(--text)}
+.filters,.tbl-filters{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.tbl-filters{margin-bottom:.75rem}
+.filter-btn{font-size:12px;padding:5px 13px;border-radius:var(--r);border:0.5px solid var(--bd2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--fn)}
+.filter-btn.active{color:var(--text);background:var(--bg);font-weight:700}
+.filter-btn:hover{color:var(--text);background:var(--bg2)}
+.sec-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:1.25rem 0 .6rem}
+.apt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px}
+.apt-card{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--rl);padding:12px 14px;cursor:pointer;position:relative;transition:transform .1s,box-shadow .1s}
+.apt-card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.apt-card:active{transform:scale(.98)}
+.apt-card.available{border-left:3px solid var(--g-bd)}
+.apt-card.pending{border-left:3px solid var(--o-bd)}
+.apt-card.rented{border-left:3px solid var(--r-bd)}
+.sdot{position:absolute;top:12px;right:12px;width:9px;height:9px;border-radius:50%}
+.dot-available{background:#639922}.dot-pending{background:#BA7517}.dot-rented{background:#E24B4A}
+.apt-num{font-size:15px;font-weight:700;color:var(--text)}
+.apt-meta{font-size:11px;color:var(--text2);margin-top:2px}
+.apt-size{font-size:12px;color:var(--text2);margin-top:8px}
+.apt-price{font-size:13px;font-weight:700;color:var(--text);margin-top:2px}
+.apt-tenant{font-size:11px;margin-top:5px;font-style:italic;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.apt-src{font-size:10px;margin-top:4px;padding:2px 7px;border-radius:var(--r);display:inline-block;font-weight:600}
+.src-aim{background:var(--g-bg);color:var(--g)}
+.src-remax{background:var(--r-bg);color:var(--rd)}
+.src-autre{background:var(--bg2);color:var(--text2)}
+.legend{display:flex;gap:14px;margin-bottom:1rem;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
+.ldot{width:8px;height:8px;border-radius:50%}
+.tbl-toolbar{display:flex;gap:6px;margin-bottom:.6rem;flex-wrap:wrap;align-items:center}
+.sort-label{font-size:12px;color:var(--text2);white-space:nowrap}
+.sort-btn{font-size:12px;padding:5px 11px;border-radius:var(--r);border:0.5px solid var(--bd);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--fn)}
+.sort-btn.active{background:var(--bg);color:var(--text);border-color:var(--bd2);font-weight:700}
+.export-group{display:flex;gap:6px;margin-left:auto}
+.export-btn{font-size:12px;padding:6px 14px;border-radius:var(--r);cursor:pointer;font-family:var(--fn);font-weight:700;border:1.5px solid}
+.btn-xlsx{color:var(--g);border-color:var(--g-bd);background:var(--g-bg)}
+.btn-xlsx:hover{filter:brightness(.93)}
+.btn-pdf{color:var(--rd);border-color:var(--r-bd);background:var(--r-bg)}
+.btn-pdf:hover{filter:brightness(.93)}
+.tbl-wrap{overflow-x:auto;border:0.5px solid var(--bd);border-radius:var(--rl);background:var(--bg)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{background:var(--bg2)}
+th{padding:10px 11px;text-align:left;font-weight:700;font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;border-bottom:0.5px solid var(--bd);white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:var(--text)}
+td{padding:9px 11px;border-bottom:0.5px solid var(--bd);color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg2);cursor:pointer}
+td.muted{color:var(--text3);font-style:italic}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:var(--r);font-weight:700}
+.badge-available{background:var(--g-bg);color:var(--g)}
+.badge-pending{background:var(--o-bg);color:var(--o)}
+.badge-rented{background:var(--r-bg);color:var(--rd)}
+.promo-tag{display:inline-block;font-size:10px;background:var(--bg2);border:0.5px solid var(--bd);border-radius:var(--r);padding:1px 6px;margin:1px}
+.empty-row td{text-align:center;color:var(--text2);padding:2rem;font-style:italic}
+.detail-view{display:none}
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);cursor:pointer;border:none;background:none;padding:0;margin-bottom:1.25rem;font-family:var(--fn)}
+.back-btn:hover{color:var(--text)}
+.detail-card{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--rl);padding:1.5rem}
+.detail-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:0.5px solid var(--bd)}
+.detail-apt{font-size:24px;font-weight:700;color:var(--text)}
+.detail-type{font-size:13px;color:var(--text2);margin-top:4px}
+.detail-price{font-size:18px;font-weight:700;color:var(--text);text-align:right}
+.detail-size{font-size:12px;color:var(--text2);margin-top:3px;text-align:right}
+.status-toggle{display:flex;gap:8px;margin-bottom:1.5rem}
+.stbtn{flex:1;padding:9px;font-size:12px;border-radius:var(--r);border:1px solid var(--bd);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--fn);font-weight:500}
+.stbtn.sel-available{background:var(--g-bg);color:var(--g);border-color:var(--g-bd);font-weight:700}
+.stbtn.sel-pending{background:var(--o-bg);color:var(--o);border-color:var(--o-bd);font-weight:700}
+.stbtn.sel-rented{background:var(--r-bg);color:var(--rd);border-color:var(--r-bd);font-weight:700}
+.fsec{margin-bottom:1.5rem}
+.fsec-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:0.5px solid var(--bd)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px}
+.frow.full{grid-template-columns:1fr}
+.fg{display:flex;flex-direction:column;gap:5px}
+label{font-size:12px;color:var(--text2);font-weight:600}
+input[type=text],input[type=date],select,textarea{width:100%;font-size:13px;padding:8px 10px;border:1px solid var(--bd);border-radius:var(--r);background:var(--bg2);color:var(--text);font-family:var(--fn)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--bd2)}
+.chk-group{display:flex;flex-direction:column;gap:8px}
+.chk-item{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--text);cursor:pointer}
+.chk-item input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:#639922}
+.other-inp{margin-top:6px;display:none}
+.save-btn{width:100%;padding:11px;font-size:14px;font-weight:700;background:var(--text);color:var(--bg);border:none;border-radius:var(--r);cursor:pointer;font-family:var(--fn);margin-top:.5rem}
+.save-btn:hover{opacity:.82}
+.save-msg{font-size:12px;color:var(--g);text-align:center;margin-top:8px;min-height:18px}
+@media(max-width:600px){.frow{grid-template-columns:1fr}.export-group{margin-left:0}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="status-bar conn-wait" id="conn-bar">
+    <div class="sdot-c"></div>
+    <span id="conn-text">Connexion à la base de données...</span>
+  </div>
+  <div class="app-title">Suivi des Relocations</div>
+  <div class="app-sub">Modifications synchronisées en temps réel entre tous les appareils</div>
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Disponible</div><div class="stat-num green" id="cnt-a">0</div></div>
+    <div class="stat"><div class="stat-label">En cours</div><div class="stat-num orange" id="cnt-p">0</div></div>
+    <div class="stat"><div class="stat-label">Loué</div><div class="stat-num red" id="cnt-r">0</div></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('grid',this)">Grille</button>
+    <button class="tab" onclick="showTab('table',this)">Tableau récapitulatif</button>
+  </div>
+  <div id="view-grid">
+    <div class="legend">
+      <div class="legend-item"><div class="ldot" style="background:#639922"></div>Disponible</div>
+      <div class="legend-item"><div class="ldot" style="background:#BA7517"></div>Demande en cours</div>
+      <div class="legend-item"><div class="ldot" style="background:#E24B4A"></div>Loué</div>
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" onclick="setGridFilter('all',event)">Tous</button>
+      <button class="filter-btn" onclick="setGridFilter('available',event)">Disponibles</button>
+      <button class="filter-btn" onclick="setGridFilter('pending',event)">En cours</button>
+      <button class="filter-btn" onclick="setGridFilter('rented',event)">Loués</button>
+    </div>
+    <div id="apt-container"></div>
+  </div>
+  <div id="view-table" style="display:none">
+    <div class="tbl-toolbar">
+      <span class="sort-label">Trier :</span>
+      <button class="sort-btn active" id="sb-apt" onclick="setSort('apt')">N° Apt ↑</button>
+      <button class="sort-btn" id="sb-movein" onclick="setSort('movein')">Emménagement ↑</button>
+      <button class="sort-btn" id="sb-source" onclick="setSort('source')">Loué par ↑</button>
+      <button class="sort-btn" id="sb-status" onclick="setSort('status')">Statut ↑</button>
+      <div class="export-group">
+        <button class="export-btn btn-xlsx" id="btn-xlsx" onclick="exportExcel()">↓ Excel</button>
+        <button class="export-btn btn-pdf" id="btn-pdf" onclick="exportPDF()">↓ PDF</button>
+      </div>
+    </div>
+    <div class="tbl-filters">
+      <button class="filter-btn active" onclick="setTblFilter('all',event)">Tous</button>
+      <button class="filter-btn" onclick="setTblFilter('available',event)">Disponibles</button>
+      <button class="filter-btn" onclick="setTblFilter('pending',event)">En cours</button>
+      <button class="filter-btn" onclick="setTblFilter('rented',event)">Loués</button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th onclick="setSort('apt')">Apt</th><th>Type</th><th>Étage</th><th>Loyer/mois</th>
+          <th onclick="setSort('status')">Statut</th><th>Locataire</th>
+          <th onclick="setSort('sign')">Signature</th><th onclick="setSort('movein')">Emménagement</th>
+          <th>Bail</th><th>Promotion</th><th onclick="setSort('source')">Loué par</th><th>Notes</th>
+        </tr></thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="detail-view" id="detail-view">
+    <button class="back-btn" onclick="closeDetail()">← Retour à la liste</button>
+    <div class="detail-card">
+      <div class="detail-header">
+        <div><div class="detail-apt" id="d-apt"></div><div class="detail-type" id="d-type"></div></div>
+        <div><div class="detail-price" id="d-price"></div><div class="detail-size" id="d-size"></div></div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-title">Statut</div>
+        <div class="status-toggle">
+          <button class="stbtn" id="st-available" onclick="setStatus('available')">Disponible</button>
+          <button class="stbtn" id="st-pending" onclick="setStatus('pending')">En cours</button>
+          <button class="stbtn" id="st-rented" onclick="setStatus('rented')">Loué</button>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-title">Loyer mensuel</div>
+        <div class="frow full"><div class="fg">
+          <label>Prix ($/mois)</label>
+          <div style="position:relative">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text2);pointer-events:none">$</span>
+            <input type="number" id="f-price" min="0" style="padding-left:22px" placeholder="Ex: 1795">
+          </div>
+          <span style="font-size:11px;color:var(--text3);margin-top:2px" id="f-price-hint"></span>
+        </div></div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-title">Locataire</div>
+        <div class="frow full"><div class="fg"><label>Nom du locataire</label><input type="text" id="f-tenant" placeholder="Prénom Nom"></div></div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-title">Bail</div>
+        <div class="frow">
+          <div class="fg"><label>Date de signature</label><input type="date" id="f-sign"></div>
+          <div class="fg"><label>Date d'emménagement</label><input type="date" id="f-movein"></div>
+        </div>
+        <div class="frow full"><div class="fg"><label>Période du bail</label>
+          <select id="f-period"><option value="">-- Choisir --</option><option value="6 mois">6 mois</option><option value="1 an">1 an</option><option value="2 ans">2 ans</option><option value="indéterminé">Durée indéterminée</option></select>
+        </div></div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-title">Promotions appliquées</div>
+        <div class="chk-group">
+          <label class="chk-item"><input type="checkbox" id="promo-1m"> 1 mois gratuit</label>
+          <label class="chk-item"><input type="checkbox" id="promo-2m"> 2 mois gratuits</label>
+          <label class="chk-item"><input type="checkbox" id="promo-autre" onchange="document.getElementById('promo-autre-wrap').style.display=this.checked?'block':'none'"> Autre</label>
+          <div class="other-inp" id="promo-autre-wrap"><input type="text" id="promo-autre-val" placeholder="Préciser..."></div>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-title">Loué par</div>
+        <div class="chk-group">
+          <label class="chk-item"><input type="checkbox" id="src-aim"> AIM Location</label>
+          <label class="chk-item"><input type="checkbox" id="src-remax"> RE/MAX</label>
+          <label class="chk-item"><input type="checkbox" id="src-autre" onchange="document.getElementById('src-autre-wrap').style.display=this.checked?'block':'none'"> Autre</label>
+          <div class="other-inp" id="src-autre-wrap"><input type="text" id="src-autre-val" placeholder="Préciser..."></div>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-title">Notes</div>
+        <textarea id="f-notes" rows="3" placeholder="Informations supplémentaires..."></textarea>
+      </div>
+      <button class="save-btn" onclick="saveDetail()">Sauvegarder et synchroniser</button>
+      <div class="save-msg" id="detail-save-msg"></div>
+    </div>
+  </div>
+</div>
+<script>
+const APTS=[
+  {num:'205',type:'Studio',floor:2,size:390,price:1575},{num:'207',type:'Studio',floor:2,size:398,price:1550},
+  {num:'305',type:'Studio',floor:3,size:390,price:1600},{num:'307',type:'Studio',floor:3,size:398,price:1575},
+  {num:'201',type:'3 ½',floor:2,size:665,price:1795},{num:'202',type:'3 ½',floor:2,size:598,price:1795},
+  {num:'203',type:'3 ½',floor:2,size:600,price:1795},{num:'206',type:'3 ½',floor:2,size:541,price:1750},
+  {num:'212',type:'3 ½',floor:2,size:620,price:1825},{num:'213',type:'3 ½',floor:2,size:561,price:1775},
+  {num:'214',type:'3 ½',floor:2,size:711,price:1850},{num:'215',type:'3 ½',floor:2,size:654,price:1825},
+  {num:'301',type:'3 ½',floor:3,size:665,price:1815},{num:'302',type:'3 ½',floor:3,size:598,price:1815},
+  {num:'303',type:'3 ½',floor:3,size:600,price:1815},{num:'306',type:'3 ½',floor:3,size:541,price:1770},
+  {num:'312',type:'3 ½',floor:3,size:620,price:1845},{num:'313',type:'3 ½',floor:3,size:561,price:1795},
+  {num:'314',type:'3 ½',floor:3,size:711,price:1870},{num:'315',type:'3 ½',floor:3,size:654,price:1845},
+  {num:'209',type:'4 ½',floor:2,size:961,price:2395},{num:'210',type:'4 ½',floor:2,size:1023,price:2450},
+  {num:'309',type:'4 ½',floor:3,size:961,price:2420},{num:'310',type:'4 ½',floor:3,size:1023,price:2475},
+  {num:'204',type:'5 ½',floor:2,size:1030,price:2875},{num:'208',type:'5 ½',floor:2,size:1085,price:2695},
+  {num:'211',type:'5 ½',floor:2,size:1005,price:2795},{num:'304',type:'5 ½',floor:3,size:1030,price:2895},
+  {num:'308',type:'5 ½',floor:3,size:1085,price:2725},{num:'311',type:'5 ½',floor:3,size:1005,price:2825},
+];
+let appData={},gridFilter='all',tblFilter='all',sortKey='apt',sortDir=1,selectedApt=null,currentTab='grid';
+let dbRef=null;
+const SL={available:'Disponible',pending:'En cours',rented:'Loué'};
+const SO={available:0,pending:1,rented:2};
+function fmt(n){return n.toLocaleString('fr-CA',{style:'currency',currency:'CAD',maximumFractionDigits:0});}
+function fmtD(d){if(!d)return'';const[y,m,j]=d.split('-');return`${j}/${m}/${y}`;}
+function getSrc(d){let s=[];if(d.srcAim)s.push('AIM Location');if(d.srcRemax)s.push('RE/MAX');if(d.srcAutre&&d.srcAutreVal)s.push(d.srcAutreVal);return s.join(', ');}
+function getPromoStr(d){let s=[];if(d.promo1m)s.push('1 mois');if(d.promo2m)s.push('2 mois');if(d.promoAutre&&d.promoAutreVal)s.push(d.promoAutreVal);return s.join(', ');}
+function getPromoArr(d){let s=[];if(d.promo1m)s.push('1 mois');if(d.promo2m)s.push('2 mois');if(d.promoAutre&&d.promoAutreVal)s.push(d.promoAutreVal);return s;}
+function srcCls(d){if(d.srcAim)return'src-aim';if(d.srcRemax)return'src-remax';return'src-autre';}
+function emptyApt(){return{status:'available',customPrice:null,tenant:'',sign:'',movein:'',period:'',promo1m:false,promo2m:false,promoAutre:false,promoAutreVal:'',srcAim:false,srcRemax:false,srcAutre:false,srcAutreVal:'',notes:''};}
+function setConn(type,msg){
+  const bar=document.getElementById('conn-bar'),txt=document.getElementById('conn-text');
+  bar.className='status-bar conn-'+type;
+  txt.textContent=msg||(type==='ok'?'Connecté — données synchronisées en temps réel':type==='wait'?'Connexion en cours...':'Erreur de connexion');
+}
+function initFirebase(){
+  try{
+    firebase.initializeApp(FIREBASE_CONFIG);
+    dbRef=firebase.database().ref('relocations');
+    dbRef.on('value',snap=>{
+      const d=snap.val();
+      if(d)appData=d;
+      APTS.forEach(a=>{if(!appData[a.num])appData[a.num]=emptyApt();});
+      setConn('ok');updateStats();renderGrid();if(currentTab==='table')renderTable();
+    },()=>setConn('err','Erreur — vérifiez votre configuration Firebase'));
+    firebase.database().ref('.info/connected').on('value',s=>{
+      if(s.val()===true)setConn('ok');else setConn('wait','Reconnexion...');
+    });
+  }catch(e){
+    setConn('err','Configuration Firebase invalide — vérifiez les paramètres en haut du fichier HTML');
+    try{const r=localStorage.getItem('reloc-data');if(r)appData=JSON.parse(r);}catch(e2){}
+    APTS.forEach(a=>{if(!appData[a.num])appData[a.num]=emptyApt();});
+    updateStats();renderGrid();
+  }
+}
+async function persist(){
+  if(dbRef){try{await dbRef.set(appData);}catch(e){localStorage.setItem('reloc-data',JSON.stringify(appData));}}
+  else localStorage.setItem('reloc-data',JSON.stringify(appData));
+}
+function updateStats(){
+  let c={available:0,pending:0,rented:0};
+  APTS.forEach(a=>c[appData[a.num]?.status||'available']++);
+  document.getElementById('cnt-a').textContent=c.available;
+  document.getElementById('cnt-p').textContent=c.pending;
+  document.getElementById('cnt-r').textContent=c.rented;
+}
+function showTab(t,el){
+  currentTab=t;document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');
+  document.getElementById('view-grid').style.display=t==='grid'?'block':'none';
+  document.getElementById('view-table').style.display=t==='table'?'block':'none';
+  document.getElementById('detail-view').style.display='none';
+  if(t==='table')renderTable();
+}
+function setGridFilter(f,e){gridFilter=f;document.querySelectorAll('#view-grid .filter-btn').forEach(b=>b.classList.remove('active'));e.target.classList.add('active');renderGrid();}
+function setTblFilter(f,e){tblFilter=f;document.querySelectorAll('#view-table .filter-btn').forEach(b=>b.classList.remove('active'));e.target.classList.add('active');renderTable();}
+function setSort(key){
+  if(sortKey===key)sortDir*=-1;else{sortKey=key;sortDir=1;}
+  document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));
+  const map={apt:'sb-apt',movein:'sb-movein',source:'sb-source',status:'sb-status'};
+  if(map[key]){const b=document.getElementById(map[key]);if(b){b.classList.add('active');b.textContent=b.textContent.replace(/[↑↓]/,sortDir===1?'↑':'↓');}}
+  renderTable();
+}
+function getSortedRows(){
+  let rows=APTS.filter(a=>tblFilter==='all'||appData[a.num]?.status===tblFilter);
+  return rows.sort((a,b)=>{
+    let va,vb;
+    if(sortKey==='apt'){va=parseInt(a.num);vb=parseInt(b.num);}
+    else if(sortKey==='movein'){va=appData[a.num]?.movein||'9999';vb=appData[b.num]?.movein||'9999';}
+    else if(sortKey==='sign'){va=appData[a.num]?.sign||'9999';vb=appData[b.num]?.sign||'9999';}
+    else if(sortKey==='source'){va=getSrc(appData[a.num]||{}).toLowerCase();vb=getSrc(appData[b.num]||{}).toLowerCase();}
+    else if(sortKey==='status'){va=SO[appData[a.num]?.status||'available'];vb=SO[appData[b.num]?.status||'available'];}
+    else{va=parseInt(a.num);vb=parseInt(b.num);}
+    if(va<vb)return -sortDir;if(va>vb)return sortDir;return 0;
+  });
+}
+function renderGrid(){
+  const c=document.getElementById('apt-container');c.innerHTML='';
+  ['Studio','3 ½','4 ½','5 ½'].forEach(type=>{
+    const group=APTS.filter(a=>a.type===type&&(gridFilter==='all'||appData[a.num]?.status===gridFilter));
+    if(!group.length)return;
+    const h=document.createElement('div');h.className='sec-title';h.textContent=type;c.appendChild(h);
+    const g=document.createElement('div');g.className='apt-grid';
+    group.forEach(a=>{
+      const d=appData[a.num]||{};const s=d.status||'available';const src=getSrc(d);
+      const card=document.createElement('div');card.className='apt-card '+s;
+      card.innerHTML=`<div class="sdot dot-${s}"></div>
+        <div class="apt-num">Apt ${a.num}</div><div class="apt-meta">Étage ${a.floor} · ${a.type}</div>
+        <div class="apt-size">${a.size} pi²</div><div class="apt-price">${fmt(d.customPrice||a.price)}/mois</div>
+        ${d.tenant?`<div class="apt-tenant">${d.tenant}</div>`:''}
+        ${src?`<div class="apt-src ${srcCls(d)}">${src}</div>`:''}`;
+      card.onclick=()=>openDetail(a.num);g.appendChild(card);
+    });
+    c.appendChild(g);
+  });
+}
+function renderTable(){
+  const rows=getSortedRows(),body=document.getElementById('tbl-body');body.innerHTML='';
+  if(!rows.length){const tr=document.createElement('tr');tr.className='empty-row';tr.innerHTML=`<td colspan="12">Aucun appartement</td>`;body.appendChild(tr);return;}
+  rows.forEach(a=>{
+    const d=appData[a.num]||{},promos=getPromoArr(d),src=getSrc(d),s=d.status||'available';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><strong>${a.num}</strong></td><td>${a.type}</td><td>${a.floor}</td><td>${fmt(d.customPrice||a.price)}</td>
+      <td><span class="badge badge-${s}">${SL[s]}</span></td>
+      <td class="${d.tenant?'':'muted'}">${d.tenant||'—'}</td>
+      <td class="${d.sign?'':'muted'}">${d.sign?fmtD(d.sign):'—'}</td>
+      <td class="${d.movein?'':'muted'}">${d.movein?fmtD(d.movein):'—'}</td>
+      <td class="${d.period?'':'muted'}">${d.period||'—'}</td>
+      <td>${promos.length?promos.map(p=>`<span class="promo-tag">${p}</span>`).join(''):'<span class="muted">—</span>'}</td>
+      <td class="${src?'':'muted'}">${src||'—'}</td>
+      <td class="${d.notes?'':'muted'}" style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${d.notes||''}">${d.notes||'—'}</td>`;
+    tr.onclick=()=>openDetail(a.num);body.appendChild(tr);
+  });
+}
+function getExportRows(){
+  return getSortedRows().map(a=>{const d=appData[a.num]||{};return{'Apt':a.num,'Type':a.type,'Étage':a.floor,'Loyer ($/mois)':d.customPrice||a.price,'Statut':SL[d.status||'available'],'Locataire':d.tenant||'','Date signature':d.sign?fmtD(d.sign):'','Date emménagement':d.movein?fmtD(d.movein):'','Période bail':d.period||'','Promotions':getPromoStr(d)||'','Loué par':getSrc(d)||'','Notes':d.notes||''};});
+}
+function exportExcel(){
+  const btn=document.getElementById('btn-xlsx');btn.textContent='⏳...';
+  try{const ws=XLSX.utils.json_to_sheet(getExportRows());ws['!cols']=[{wch:6},{wch:8},{wch:7},{wch:14},{wch:12},{wch:22},{wch:14},{wch:16},{wch:12},{wch:16},{wch:16},{wch:28}];const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Relocations');XLSX.writeFile(wb,`relocations-${new Date().toLocaleDateString('fr-CA').replace(/\//g,'-')}.xlsx`);}catch(e){alert('Erreur: '+e.message);}
+  btn.textContent='↓ Excel';
+}
+function exportPDF(){
+  const btn=document.getElementById('btn-pdf');btn.textContent='⏳...';
+  try{
+    const{jsPDF}=window.jspdf,doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'}),date=new Date().toLocaleDateString('fr-CA');
+    doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text('Suivi des Relocations',14,16);
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(120);doc.text(`Généré le ${date}`,14,22);
+    const cnt={available:0,pending:0,rented:0};APTS.forEach(a=>cnt[appData[a.num]?.status||'available']++);
+    doc.setTextColor(60);doc.text(`Disponibles: ${cnt.available}   En cours: ${cnt.pending}   Loués: ${cnt.rented}   Total: ${APTS.length}`,14,28);
+    doc.autoTable({head:[['Apt','Type','Étage','Loyer/mois','Statut','Locataire','Signature','Emménagement','Bail','Promotion','Loué par','Notes']],body:getExportRows().map(r=>Object.values(r).map(v=>String(v===0?'0':v||''))),startY:33,styles:{fontSize:8,cellPadding:2.5,overflow:'ellipsize'},headStyles:{fillColor:[30,30,28],textColor:255,fontStyle:'bold'},columnStyles:{0:{cellWidth:12},1:{cellWidth:14},2:{cellWidth:12},3:{cellWidth:20},4:{cellWidth:20},5:{cellWidth:28},6:{cellWidth:22},7:{cellWidth:24},8:{cellWidth:18},9:{cellWidth:20},10:{cellWidth:22},11:{cellWidth:'auto'}},alternateRowStyles:{fillColor:[248,248,246]},didParseCell(d){if(d.column.index===4&&d.section==='body'){const m={Disponible:[59,109,17],'En cours':[133,79,11],Loué:[163,45,45]};const c=m[d.cell.raw];if(c){d.cell.styles.textColor=c;d.cell.styles.fontStyle='bold';}}},margin:{left:14,right:14}});
+    const pages=doc.internal.getNumberOfPages();for(let i=1;i<=pages;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(150);doc.text(`Page ${i}/${pages}`,doc.internal.pageSize.width-20,doc.internal.pageSize.height-8);}
+    doc.save(`relocations-${new Date().toLocaleDateString('fr-CA').replace(/\//g,'-')}.pdf`);
+  }catch(e){alert('Erreur: '+e.message);}
+  btn.textContent='↓ PDF';
+}
+function openDetail(num){
+  selectedApt=num;const a=APTS.find(x=>x.num===num),d=appData[num]||{};
+  document.getElementById('d-apt').textContent='Appartement '+num;
+  document.getElementById('d-type').textContent=`${a.type} · Étage ${a.floor}`;
+  document.getElementById('d-price').textContent=fmt(d.customPrice||a.price)+'/mois';
+  document.getElementById('f-price').value=d.customPrice||a.price;
+  document.getElementById('f-price-hint').textContent=`Prix de base : ${fmt(a.price)}/mois`;
+  document.getElementById('d-size').textContent=a.size+' pi²';
+  document.getElementById('f-tenant').value=d.tenant||'';
+  document.getElementById('f-sign').value=d.sign||'';
+  document.getElementById('f-movein').value=d.movein||'';
+  document.getElementById('f-period').value=d.period||'';
+  document.getElementById('promo-1m').checked=!!d.promo1m;
+  document.getElementById('promo-2m').checked=!!d.promo2m;
+  document.getElementById('promo-autre').checked=!!d.promoAutre;
+  document.getElementById('promo-autre-val').value=d.promoAutreVal||'';
+  document.getElementById('promo-autre-wrap').style.display=d.promoAutre?'block':'none';
+  document.getElementById('src-aim').checked=!!d.srcAim;
+  document.getElementById('src-remax').checked=!!d.srcRemax;
+  document.getElementById('src-autre').checked=!!d.srcAutre;
+  document.getElementById('src-autre-val').value=d.srcAutreVal||'';
+  document.getElementById('src-autre-wrap').style.display=d.srcAutre?'block':'none';
+  document.getElementById('f-notes').value=d.notes||'';
+  document.getElementById('detail-save-msg').textContent='';
+  updateStBtns(d.status||'available');
+  document.getElementById('view-grid').style.display='none';
+  document.getElementById('view-table').style.display='none';
+  document.getElementById('detail-view').style.display='block';
+}
+function updateStBtns(s){['available','pending','rented'].forEach(x=>{document.getElementById('st-'+x).className='stbtn'+(s===x?' sel-'+x:'');});}
+function setStatus(s){if(selectedApt)appData[selectedApt].status=s;updateStBtns(s);}
+function closeDetail(){
+  document.getElementById('detail-view').style.display='none';
+  document.getElementById('view-grid').style.display=currentTab==='grid'?'block':'none';
+  document.getElementById('view-table').style.display=currentTab==='table'?'block':'none';
+  selectedApt=null;updateStats();renderGrid();if(currentTab==='table')renderTable();
+}
+async function saveDetail(){
+  if(!selectedApt)return;
+  appData[selectedApt]={status:appData[selectedApt]?.status||'available',customPrice:parseInt(document.getElementById('f-price').value)||null,tenant:document.getElementById('f-tenant').value,sign:document.getElementById('f-sign').value,movein:document.getElementById('f-movein').value,period:document.getElementById('f-period').value,promo1m:document.getElementById('promo-1m').checked,promo2m:document.getElementById('promo-2m').checked,promoAutre:document.getElementById('promo-autre').checked,promoAutreVal:document.getElementById('promo-autre-val').value,srcAim:document.getElementById('src-aim').checked,srcRemax:document.getElementById('src-remax').checked,srcAutre:document.getElementById('src-autre').checked,srcAutreVal:document.getElementById('src-autre-val').value,notes:document.getElementById('f-notes').value};
+  await persist();
+  const m=document.getElementById('detail-save-msg');m.textContent='Sauvegardé et synchronisé ✓';setTimeout(()=>m.textContent='',2500);
+}
+initFirebase();
+</script>
+</body>
+</html>
