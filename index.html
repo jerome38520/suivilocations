@@ -158,8 +158,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--bd2)}
     <div class="sdot-c"></div>
     <span id="conn-text">Connexion à la base de données...</span>
   </div>
-  <div class="app-title">Suivi des Relocations</div>
-  <div class="app-sub">Modifications synchronisées en temps réel entre tous les appareils</div>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1.25rem">
+    <div>
+      <div class="app-title">Suivi des Relocations</div>
+      <div class="app-sub" style="margin-bottom:0">Modifications synchronisées en temps réel entre tous les appareils</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;margin-top:4px">
+      <button onclick="backupData()" style="font-size:12px;padding:7px 13px;border-radius:var(--r);border:0.5px solid var(--g-bd);background:var(--g-bg);color:var(--g);cursor:pointer;font-family:var(--fn);font-weight:600" title="Télécharger une copie de toutes vos données">&#8595; Sauvegarder (.json)</button>
+      <label style="font-size:12px;padding:7px 13px;border-radius:var(--r);border:0.5px solid var(--o-bd);background:var(--o-bg);color:var(--o);cursor:pointer;font-family:var(--fn);font-weight:600" title="Restaurer depuis une sauvegarde .json">&#8593; Restaurer (.json)<input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreData(event)"></label>
+    </div>
+  </div>
+  <div id="backup-msg" style="font-size:12px;text-align:right;min-height:16px;margin-top:-1rem;margin-bottom:.75rem;color:var(--text3)"></div>
   <div class="stats">
     <div class="stat"><div class="stat-label">Disponible</div><div class="stat-num green" id="cnt-a">0</div></div>
     <div class="stat"><div class="stat-label">En cours</div><div class="stat-num orange" id="cnt-p">0</div></div>
@@ -227,6 +236,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--bd2)}
           <button class="stbtn" id="st-pending" onclick="setStatus('pending')">En cours</button>
           <button class="stbtn" id="st-rented" onclick="setStatus('rented')">Loué</button>
         </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-title">Loyer mensuel</div>
+        <div class="frow full"><div class="fg">
+          <label>Prix ($/mois)</label>
+          <div style="position:relative">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text2);pointer-events:none">$</span>
+            <input type="number" id="f-price" min="0" style="padding-left:22px" placeholder="Ex: 1795">
+          </div>
+          <span style="font-size:11px;color:var(--text3);margin-top:2px" id="f-price-hint"></span>
+        </div></div>
       </div>
       <div class="fsec">
         <div class="fsec-title">Locataire</div>
@@ -297,7 +317,7 @@ function getSrc(d){let s=[];if(d.srcAim)s.push('AIM Location');if(d.srcRemax)s.p
 function getPromoStr(d){let s=[];if(d.promo1m)s.push('1 mois');if(d.promo2m)s.push('2 mois');if(d.promoAutre&&d.promoAutreVal)s.push(d.promoAutreVal);return s.join(', ');}
 function getPromoArr(d){let s=[];if(d.promo1m)s.push('1 mois');if(d.promo2m)s.push('2 mois');if(d.promoAutre&&d.promoAutreVal)s.push(d.promoAutreVal);return s;}
 function srcCls(d){if(d.srcAim)return'src-aim';if(d.srcRemax)return'src-remax';return'src-autre';}
-function emptyApt(){return{status:'available',tenant:'',sign:'',movein:'',period:'',promo1m:false,promo2m:false,promoAutre:false,promoAutreVal:'',srcAim:false,srcRemax:false,srcAutre:false,srcAutreVal:'',notes:''};}
+function emptyApt(){return{status:'available',customPrice:null,tenant:'',sign:'',movein:'',period:'',promo1m:false,promo2m:false,promoAutre:false,promoAutreVal:'',srcAim:false,srcRemax:false,srcAutre:false,srcAutreVal:'',notes:''};}
 function setConn(type,msg){
   const bar=document.getElementById('conn-bar'),txt=document.getElementById('conn-text');
   bar.className='status-bar conn-'+type;
@@ -375,7 +395,7 @@ function renderGrid(){
       const card=document.createElement('div');card.className='apt-card '+s;
       card.innerHTML=`<div class="sdot dot-${s}"></div>
         <div class="apt-num">Apt ${a.num}</div><div class="apt-meta">Étage ${a.floor} · ${a.type}</div>
-        <div class="apt-size">${a.size} pi²</div><div class="apt-price">${fmt(a.price)}/mois</div>
+        <div class="apt-size">${a.size} pi²</div><div class="apt-price">${fmt(d.customPrice||a.price)}/mois</div>
         ${d.tenant?`<div class="apt-tenant">${d.tenant}</div>`:''}
         ${src?`<div class="apt-src ${srcCls(d)}">${src}</div>`:''}`;
       card.onclick=()=>openDetail(a.num);g.appendChild(card);
@@ -389,7 +409,7 @@ function renderTable(){
   rows.forEach(a=>{
     const d=appData[a.num]||{},promos=getPromoArr(d),src=getSrc(d),s=d.status||'available';
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td><strong>${a.num}</strong></td><td>${a.type}</td><td>${a.floor}</td><td>${fmt(a.price)}</td>
+    tr.innerHTML=`<td><strong>${a.num}</strong></td><td>${a.type}</td><td>${a.floor}</td><td>${fmt(d.customPrice||a.price)}</td>
       <td><span class="badge badge-${s}">${SL[s]}</span></td>
       <td class="${d.tenant?'':'muted'}">${d.tenant||'—'}</td>
       <td class="${d.sign?'':'muted'}">${d.sign?fmtD(d.sign):'—'}</td>
@@ -402,7 +422,7 @@ function renderTable(){
   });
 }
 function getExportRows(){
-  return getSortedRows().map(a=>{const d=appData[a.num]||{};return{'Apt':a.num,'Type':a.type,'Étage':a.floor,'Loyer ($/mois)':a.price,'Statut':SL[d.status||'available'],'Locataire':d.tenant||'','Date signature':d.sign?fmtD(d.sign):'','Date emménagement':d.movein?fmtD(d.movein):'','Période bail':d.period||'','Promotions':getPromoStr(d)||'','Loué par':getSrc(d)||'','Notes':d.notes||''};});
+  return getSortedRows().map(a=>{const d=appData[a.num]||{};return{'Apt':a.num,'Type':a.type,'Étage':a.floor,'Loyer ($/mois)':d.customPrice||a.price,'Statut':SL[d.status||'available'],'Locataire':d.tenant||'','Date signature':d.sign?fmtD(d.sign):'','Date emménagement':d.movein?fmtD(d.movein):'','Période bail':d.period||'','Promotions':getPromoStr(d)||'','Loué par':getSrc(d)||'','Notes':d.notes||''};});
 }
 function exportExcel(){
   const btn=document.getElementById('btn-xlsx');btn.textContent='⏳...';
@@ -427,7 +447,9 @@ function openDetail(num){
   selectedApt=num;const a=APTS.find(x=>x.num===num),d=appData[num]||{};
   document.getElementById('d-apt').textContent='Appartement '+num;
   document.getElementById('d-type').textContent=`${a.type} · Étage ${a.floor}`;
-  document.getElementById('d-price').textContent=fmt(a.price)+'/mois';
+  document.getElementById('d-price').textContent=fmt(d.customPrice||a.price)+'/mois';
+  document.getElementById('f-price').value=d.customPrice||a.price;
+  document.getElementById('f-price-hint').textContent=`Prix de base : ${fmt(a.price)}/mois`;
   document.getElementById('d-size').textContent=a.size+' pi²';
   document.getElementById('f-tenant').value=d.tenant||'';
   document.getElementById('f-sign').value=d.sign||'';
@@ -460,9 +482,47 @@ function closeDetail(){
 }
 async function saveDetail(){
   if(!selectedApt)return;
-  appData[selectedApt]={status:appData[selectedApt]?.status||'available',tenant:document.getElementById('f-tenant').value,sign:document.getElementById('f-sign').value,movein:document.getElementById('f-movein').value,period:document.getElementById('f-period').value,promo1m:document.getElementById('promo-1m').checked,promo2m:document.getElementById('promo-2m').checked,promoAutre:document.getElementById('promo-autre').checked,promoAutreVal:document.getElementById('promo-autre-val').value,srcAim:document.getElementById('src-aim').checked,srcRemax:document.getElementById('src-remax').checked,srcAutre:document.getElementById('src-autre').checked,srcAutreVal:document.getElementById('src-autre-val').value,notes:document.getElementById('f-notes').value};
+  appData[selectedApt]={status:appData[selectedApt]?.status||'available',customPrice:parseInt(document.getElementById('f-price').value)||null,tenant:document.getElementById('f-tenant').value,sign:document.getElementById('f-sign').value,movein:document.getElementById('f-movein').value,period:document.getElementById('f-period').value,promo1m:document.getElementById('promo-1m').checked,promo2m:document.getElementById('promo-2m').checked,promoAutre:document.getElementById('promo-autre').checked,promoAutreVal:document.getElementById('promo-autre-val').value,srcAim:document.getElementById('src-aim').checked,srcRemax:document.getElementById('src-remax').checked,srcAutre:document.getElementById('src-autre').checked,srcAutreVal:document.getElementById('src-autre-val').value,notes:document.getElementById('f-notes').value};
   await persist();
   const m=document.getElementById('detail-save-msg');m.textContent='Sauvegardé et synchronisé ✓';setTimeout(()=>m.textContent='',2500);
+}
+function backupData(){
+  try{
+    const backup={version:1,date:new Date().toISOString(),data:appData};
+    const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=`relocations-backup-${new Date().toLocaleDateString('fr-CA').replace(/\//g,'-')}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showBackupMsg('Sauvegarde téléchargée avec succès ✓','var(--g)');
+  }catch(e){showBackupMsg('Erreur lors de la sauvegarde','var(--rd)');}
+}
+function restoreData(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    try{
+      const backup=JSON.parse(e.target.result);
+      const data=backup.data||backup;
+      if(!data||typeof data!=='object')throw new Error('Format invalide');
+      const nb=Object.keys(data).length;
+      if(!confirm(`Restaurer ${nb} appartements depuis la sauvegarde du ${backup.date?new Date(backup.date).toLocaleDateString('fr-CA'):'?'} ?\n\nCela remplacera toutes les données actuelles.`))return;
+      appData=data;
+      await persist();
+      showBackupMsg(`${nb} appartements restaurés avec succès ✓`,'var(--g)');
+      updateStats();renderGrid();if(currentTab==='table')renderTable();
+    }catch(err){showBackupMsg('Fichier invalide — utilisez une sauvegarde .json générée par ce site','var(--rd)');}
+    event.target.value='';
+  };
+  reader.readAsText(file);
+}
+function showBackupMsg(msg,color){
+  const el=document.getElementById('backup-msg');
+  el.textContent=msg;el.style.color=color;
+  setTimeout(()=>{el.textContent='';},4000);
 }
 initFirebase();
 </script>
