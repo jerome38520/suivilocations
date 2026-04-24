@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -36,6 +35,7 @@
   --g-bg:#EAF3DE;--g:#3B6D11;--g-bd:#97C459;
   --o-bg:#FAEEDA;--o:#854F0B;--o-bd:#EF9F27;
   --r-bg:#FCEBEB;--rd:#A32D2D;--r-bd:#E24B4A;
+  --b-bg:#E6F1FB;--b:#185FA5;--b-bd:#85B7EB;
 }
 @media(prefers-color-scheme:dark){:root{
   --bg:#1c1c1a;--bg2:#262624;--bg3:#2e2e2b;
@@ -44,6 +44,7 @@
   --g-bg:#173404;--g:#C0DD97;--g-bd:#3B6D11;
   --o-bg:#412402;--o:#FAC775;--o-bd:#854F0B;
   --r-bg:#501313;--rd:#F7C1C1;--r-bd:#A32D2D;
+  --b-bg:#042C53;--b:#B5D4F4;--b-bd:#185FA5;
 }}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--fn);background:var(--bg3);color:var(--text);min-height:100vh}
@@ -88,10 +89,16 @@ body{font-family:var(--fn);background:var(--bg3);color:var(--text);min-height:10
 .apt-size{font-size:12px;color:var(--text2);margin-top:8px}
 .apt-price{font-size:13px;font-weight:700;color:var(--text);margin-top:2px}
 .apt-tenant{font-size:11px;margin-top:5px;font-style:italic;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Prix supplémentaires (renouvellement, annoncé, reloué) dans les cartes */
+.apt-extras{margin-top:6px;padding-top:6px;border-top:0.5px dashed var(--bd);font-size:11px;line-height:1.5}
+.apt-extras .xrow{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.apt-extras .xlbl{color:var(--text2)}
+.apt-extras .xval{color:var(--text);font-weight:600}
 .apt-src{font-size:10px;margin-top:4px;padding:2px 7px;border-radius:var(--r);display:inline-block;font-weight:600}
 .src-aim{background:var(--g-bg);color:var(--g)}
 .src-remax{background:var(--r-bg);color:var(--rd)}
 .src-autre{background:var(--bg2);color:var(--text2)}
+.apt-meuble{font-size:10px;margin-top:4px;margin-left:4px;padding:2px 7px;border-radius:var(--r);display:inline-block;font-weight:600;background:var(--b-bg);color:var(--b)}
 .legend{display:flex;gap:14px;margin-bottom:1rem;flex-wrap:wrap}
 .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
 .ldot{width:8px;height:8px;border-radius:50%}
@@ -118,6 +125,7 @@ td.muted{color:var(--text3);font-style:italic}
 .badge-available{background:var(--g-bg);color:var(--g)}
 .badge-pending{background:var(--o-bg);color:var(--o)}
 .badge-rented{background:var(--r-bg);color:var(--rd)}
+.badge-meuble{background:var(--b-bg);color:var(--b)}
 .promo-tag{display:inline-block;font-size:10px;background:var(--bg2);border:0.5px solid var(--bd);border-radius:var(--r);padding:1px 6px;margin:1px}
 .empty-row td{text-align:center;color:var(--text2);padding:2rem;font-style:italic}
 .detail-view{display:none}
@@ -140,16 +148,28 @@ td.muted{color:var(--text3);font-style:italic}
 .frow.full{grid-template-columns:1fr}
 .fg{display:flex;flex-direction:column;gap:5px}
 label{font-size:12px;color:var(--text2);font-weight:600}
-input[type=text],input[type=date],select,textarea{width:100%;font-size:13px;padding:8px 10px;border:1px solid var(--bd);border-radius:var(--r);background:var(--bg2);color:var(--text);font-family:var(--fn)}
+input[type=text],input[type=date],input[type=number],select,textarea{width:100%;font-size:13px;padding:8px 10px;border:1px solid var(--bd);border-radius:var(--r);background:var(--bg2);color:var(--text);font-family:var(--fn)}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--bd2)}
 .chk-group{display:flex;flex-direction:column;gap:8px}
 .chk-item{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--text);cursor:pointer}
 .chk-item input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:#639922}
 .other-inp{margin-top:6px;display:none}
+/* Bloc mobilier : liste de meubles avec quantités */
+.mob-list{display:flex;flex-direction:column;gap:4px;margin-top:10px;padding:10px;background:var(--bg2);border-radius:var(--r)}
+.mob-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 8px}
+.mob-row span{font-size:13px;color:var(--text)}
+.mob-row input[type=number]{width:70px;text-align:center;padding:5px 8px}
+.mob-hint{font-size:11px;color:var(--text3);margin-bottom:4px}
 .save-btn{width:100%;padding:11px;font-size:14px;font-weight:700;background:var(--text);color:var(--bg);border:none;border-radius:var(--r);cursor:pointer;font-family:var(--fn);margin-top:.5rem}
 .save-btn:hover{opacity:.82}
 .save-msg{font-size:12px;color:var(--g);text-align:center;margin-top:8px;min-height:18px}
 @media(max-width:600px){.frow{grid-template-columns:1fr}.export-group{margin-left:0}}
+/* Sélecteur de bâtiment en haut de page */
+.bld-selector{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;padding:10px 14px;background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--rl)}
+.bld-selector label{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em}
+.bld-selector select{flex:1;max-width:280px;font-size:14px;font-weight:700;padding:8px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);color:var(--text);font-family:var(--fn);cursor:pointer}
+.bld-selector select:focus{outline:none;border-color:var(--text)}
+.bld-selector .bld-count{font-size:12px;color:var(--text3)}
 </style>
 </head>
 <body>
@@ -169,6 +189,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--bd2)}
     </div>
   </div>
   <div id="backup-msg" style="font-size:12px;text-align:right;min-height:16px;margin-top:-1rem;margin-bottom:.75rem;color:var(--text3)"></div>
+  <!-- Sélecteur de bâtiment -->
+  <div class="bld-selector">
+    <label>🏢 Immeuble :</label>
+    <select id="building-select" onchange="changeBuilding(this.value)">
+      <option value="belanger">Bélanger (2485 Bélanger)</option>
+      <option value="hopper">Le Hopper</option>
+    </select>
+    <span class="bld-count" id="bld-count"></span>
+  </div>
   <div class="stats">
     <div class="stat"><div class="stat-label">Disponible</div><div class="stat-num green" id="cnt-a">0</div></div>
     <div class="stat"><div class="stat-label">En cours</div><div class="stat-num orange" id="cnt-p">0</div></div>
@@ -177,6 +206,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--bd2)}
   <div class="tabs">
     <button class="tab active" onclick="showTab('grid',this)">Grille</button>
     <button class="tab" onclick="showTab('table',this)">Tableau récapitulatif</button>
+    <button class="tab" onclick="showTab('mobilier',this)">Mobilier</button>
   </div>
   <div id="view-grid">
     <div class="legend">
@@ -216,9 +246,42 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--bd2)}
           <th onclick="setSort('apt')">Apt</th><th>Type</th><th>Étage</th><th>Loyer/mois</th>
           <th onclick="setSort('status')">Statut</th><th>Locataire</th>
           <th onclick="setSort('sign')">Signature</th><th onclick="setSort('movein')">Emménagement</th>
-          <th>Bail</th><th>Promotion</th><th onclick="setSort('source')">Loué par</th><th>Notes</th>
+          <th>Bail</th><th>Meublé</th><th>Promotion</th><th onclick="setSort('source')">Loué par</th><th>Notes</th>
         </tr></thead>
         <tbody id="tbl-body"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="view-mobilier" style="display:none">
+    <div style="margin-bottom:1rem;font-size:13px;color:var(--text2)">
+      Récapitulatif du mobilier par appartement. Le <strong>total à commander</strong> ne compte que les logements en cours et loués.
+    </div>
+    <div class="tbl-toolbar">
+      <div class="export-group" style="margin-left:0">
+        <button class="export-btn btn-xlsx" id="btn-mob-xlsx" onclick="exportMobilierExcel()">↓ Excel</button>
+        <button class="export-btn btn-pdf" id="btn-mob-pdf" onclick="exportMobilierPDF()">↓ PDF</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Apt</th><th>Type</th><th>Étage</th><th>Statut</th>
+          <th style="text-align:center">Tables</th>
+          <th style="text-align:center">Chaises</th>
+          <th style="text-align:center">Lits+som.</th>
+          <th style="text-align:center">Matelas</th>
+          <th style="text-align:center">Canapés</th>
+          <th style="text-align:center">Meuble TV</th>
+          <th style="text-align:center">T. salon</th>
+          <th style="text-align:center">Bureaux</th>
+          <th style="text-align:center">T. chevet</th>
+          <th style="text-align:center">Voiles</th>
+          <th style="text-align:center">Tringles</th>
+          <th style="text-align:center">Accroches</th>
+          <th style="text-align:center">Total</th>
+        </tr></thead>
+        <tbody id="mob-body"></tbody>
+        <tfoot id="mob-foot"></tfoot>
       </table>
     </div>
   </div>
@@ -240,12 +303,33 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--bd2)}
       <div class="fsec">
         <div class="fsec-title">Loyer mensuel</div>
         <div class="frow full"><div class="fg">
-          <label>Prix ($/mois)</label>
+          <label>Prix actuel ($/mois)</label>
           <div style="position:relative">
             <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text2);pointer-events:none">$</span>
             <input type="number" id="f-price" min="0" style="padding-left:22px" placeholder="Ex: 1795">
           </div>
           <span style="font-size:11px;color:var(--text3);margin-top:2px" id="f-price-hint"></span>
+        </div></div>
+        <div class="frow full"><div class="fg">
+          <label>Prix au renouvellement</label>
+          <div style="position:relative">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text2);pointer-events:none">$</span>
+            <input type="number" id="f-renouvellement" min="0" style="padding-left:22px" placeholder="—">
+          </div>
+        </div></div>
+        <div class="frow full"><div class="fg">
+          <label>Prix annoncé</label>
+          <div style="position:relative">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text2);pointer-events:none">$</span>
+            <input type="number" id="f-annonce" min="0" style="padding-left:22px" placeholder="—">
+          </div>
+        </div></div>
+        <div class="frow full"><div class="fg">
+          <label>Prix reloué</label>
+          <div style="position:relative">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text2);pointer-events:none">$</span>
+            <input type="number" id="f-reloue" min="0" style="padding-left:22px" placeholder="—">
+          </div>
         </div></div>
       </div>
       <div class="fsec">
@@ -262,6 +346,31 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--bd2)}
           <select id="f-period"><option value="">-- Choisir --</option><option value="6 mois">6 mois</option><option value="1 an">1 an</option><option value="2 ans">2 ans</option><option value="indéterminé">Durée indéterminée</option></select>
         </div></div>
       </div>
+      <!-- === NOUVEAU BLOC MOBILIER === -->
+      <div class="fsec">
+        <div class="fsec-title">Mobilier</div>
+        <div class="chk-group">
+          <label class="chk-item"><input type="checkbox" id="f-meuble" onchange="toggleMobilier()"> Logement meublé</label>
+        </div>
+        <div class="other-inp" id="mobilier-wrap">
+          <div class="mob-hint">Indiquez la quantité pour chaque type de meuble inclus dans le logement :</div>
+          <div class="mob-list">
+            <div class="mob-row"><span>Tables</span><input type="number" id="mob-tables" min="0" value="0"></div>
+            <div class="mob-row"><span>Chaises</span><input type="number" id="mob-chaises" min="0" value="0"></div>
+            <div class="mob-row"><span>Lits + sommiers</span><input type="number" id="mob-lit_sommier" min="0" value="0"></div>
+            <div class="mob-row"><span>Matelas</span><input type="number" id="mob-matelas" min="0" value="0"></div>
+            <div class="mob-row"><span>Canapés</span><input type="number" id="mob-canape" min="0" value="0"></div>
+            <div class="mob-row"><span>Meubles TV</span><input type="number" id="mob-meuble_tv" min="0" value="0"></div>
+            <div class="mob-row"><span>Tables de salon</span><input type="number" id="mob-table_salon" min="0" value="0"></div>
+            <div class="mob-row"><span>Bureaux</span><input type="number" id="mob-bureau" min="0" value="0"></div>
+            <div class="mob-row"><span>Tables de chevet</span><input type="number" id="mob-table_chevet" min="0" value="0"></div>
+            <div class="mob-row"><span>Voiles</span><input type="number" id="mob-voiles" min="0" value="0"></div>
+            <div class="mob-row"><span>Tringles</span><input type="number" id="mob-tringles" min="0" value="0"></div>
+            <div class="mob-row"><span>Accroches</span><input type="number" id="mob-accroches" min="0" value="0"></div>
+          </div>
+        </div>
+      </div>
+      <!-- === FIN NOUVEAU BLOC === -->
       <div class="fsec">
         <div class="fsec-title">Promotions appliquées</div>
         <div class="chk-group">
@@ -290,25 +399,59 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--bd2)}
   </div>
 </div>
 <script>
-const APTS=[
-  {num:'205',type:'Studio',floor:2,size:390,price:1575},{num:'207',type:'Studio',floor:2,size:398,price:1550},
-  {num:'305',type:'Studio',floor:3,size:390,price:1600},{num:'307',type:'Studio',floor:3,size:398,price:1575},
-  {num:'201',type:'3 ½',floor:2,size:665,price:1795},{num:'202',type:'3 ½',floor:2,size:598,price:1795},
-  {num:'203',type:'3 ½',floor:2,size:600,price:1795},{num:'206',type:'3 ½',floor:2,size:541,price:1750},
-  {num:'212',type:'3 ½',floor:2,size:620,price:1825},{num:'213',type:'3 ½',floor:2,size:561,price:1775},
-  {num:'214',type:'3 ½',floor:2,size:711,price:1850},{num:'215',type:'3 ½',floor:2,size:654,price:1825},
-  {num:'301',type:'3 ½',floor:3,size:665,price:1815},{num:'302',type:'3 ½',floor:3,size:598,price:1815},
-  {num:'303',type:'3 ½',floor:3,size:600,price:1815},{num:'306',type:'3 ½',floor:3,size:541,price:1770},
-  {num:'312',type:'3 ½',floor:3,size:620,price:1845},{num:'313',type:'3 ½',floor:3,size:561,price:1795},
-  {num:'314',type:'3 ½',floor:3,size:711,price:1870},{num:'315',type:'3 ½',floor:3,size:654,price:1845},
-  {num:'209',type:'4 ½',floor:2,size:961,price:2395},{num:'210',type:'4 ½',floor:2,size:1023,price:2450},
-  {num:'309',type:'4 ½',floor:3,size:961,price:2420},{num:'310',type:'4 ½',floor:3,size:1023,price:2475},
-  {num:'204',type:'5 ½',floor:2,size:1030,price:2875},{num:'208',type:'5 ½',floor:2,size:1085,price:2695},
-  {num:'211',type:'5 ½',floor:2,size:1005,price:2795},{num:'304',type:'5 ½',floor:3,size:1030,price:2895},
-  {num:'308',type:'5 ½',floor:3,size:1085,price:2725},{num:'311',type:'5 ½',floor:3,size:1005,price:2825},
+// Liste des immeubles (id interne → libellé affiché)
+const BUILDINGS=[
+  {id:'belanger',name:'Bélanger',address:'2485 Bélanger'},
+  {id:'hopper',name:'Le Hopper',address:'Hopper'}
 ];
-let appData={},gridFilter='all',tblFilter='all',sortKey='apt',sortDir=1,selectedApt=null,currentTab='grid';
+const APTS=[
+  // ===== IMMEUBLE BÉLANGER =====
+  {building:'belanger',num:'205',type:'Studio',floor:2,size:390,price:1575},{building:'belanger',num:'207',type:'Studio',floor:2,size:398,price:1550},
+  {building:'belanger',num:'305',type:'Studio',floor:3,size:390,price:1600},{building:'belanger',num:'307',type:'Studio',floor:3,size:398,price:1575},
+  {building:'belanger',num:'201',type:'3 ½',floor:2,size:665,price:1795},{building:'belanger',num:'202',type:'3 ½',floor:2,size:598,price:1795},
+  {building:'belanger',num:'203',type:'3 ½',floor:2,size:600,price:1795},{building:'belanger',num:'206',type:'3 ½',floor:2,size:541,price:1750},
+  {building:'belanger',num:'212',type:'3 ½',floor:2,size:620,price:1825},{building:'belanger',num:'213',type:'3 ½',floor:2,size:561,price:1775},
+  {building:'belanger',num:'214',type:'3 ½',floor:2,size:711,price:1850},{building:'belanger',num:'215',type:'3 ½',floor:2,size:654,price:1825},
+  {building:'belanger',num:'301',type:'3 ½',floor:3,size:665,price:1815},{building:'belanger',num:'302',type:'3 ½',floor:3,size:598,price:1815},
+  {building:'belanger',num:'303',type:'3 ½',floor:3,size:600,price:1815},{building:'belanger',num:'306',type:'3 ½',floor:3,size:541,price:1770},
+  {building:'belanger',num:'312',type:'3 ½',floor:3,size:620,price:1845},{building:'belanger',num:'313',type:'3 ½',floor:3,size:561,price:1795},
+  {building:'belanger',num:'314',type:'3 ½',floor:3,size:711,price:1870},{building:'belanger',num:'315',type:'3 ½',floor:3,size:654,price:1845},
+  {building:'belanger',num:'209',type:'4 ½',floor:2,size:961,price:2395},{building:'belanger',num:'210',type:'4 ½',floor:2,size:1023,price:2450},
+  {building:'belanger',num:'309',type:'4 ½',floor:3,size:961,price:2420},{building:'belanger',num:'310',type:'4 ½',floor:3,size:1023,price:2475},
+  {building:'belanger',num:'204',type:'5 ½',floor:2,size:1030,price:2875},{building:'belanger',num:'208',type:'5 ½',floor:2,size:1085,price:2695},
+  {building:'belanger',num:'211',type:'5 ½',floor:2,size:1005,price:2795},{building:'belanger',num:'304',type:'5 ½',floor:3,size:1030,price:2895},
+  {building:'belanger',num:'308',type:'5 ½',floor:3,size:1085,price:2725},{building:'belanger',num:'311',type:'5 ½',floor:3,size:1005,price:2825},
+  // ===== IMMEUBLE LE HOPPER (appartements quittés à reloger) =====
+  {building:'hopper',num:'101',type:'3 ½',floor:1,size:635,price:1665},
+  {building:'hopper',num:'104',type:'4 ½',floor:1,size:811,price:1882},
+  {building:'hopper',num:'201',type:'3 ½',floor:2,size:739,price:1800},
+  {building:'hopper',num:'204',type:'4 ½',floor:2,size:973,price:2231},
+  {building:'hopper',num:'301',type:'3 ½',floor:3,size:739,price:1760},
+  {building:'hopper',num:'302',type:'4 ½',floor:3,size:827,price:2083},
+  {building:'hopper',num:'306',type:'4 ½',floor:3,size:844,price:1900},
+  {building:'hopper',num:'307',type:'4 ½',floor:3,size:917,price:2263},
+];
+// Liste des types de meubles (id interne → libellé affiché)
+const MOB_TYPES=[
+  {id:'tables',label:'Tables'},
+  {id:'chaises',label:'Chaises'},
+  {id:'lit_sommier',label:'Lits + sommiers'},
+  {id:'matelas',label:'Matelas'},
+  {id:'canape',label:'Canapés'},
+  {id:'meuble_tv',label:'Meubles TV'},
+  {id:'table_salon',label:'Tables de salon'},
+  {id:'bureau',label:'Bureaux'},
+  {id:'table_chevet',label:'Tables de chevet'},
+  {id:'voiles',label:'Voiles'},
+  {id:'tringles',label:'Tringles'},
+  {id:'accroches',label:'Accroches'},
+];
+let appData={},gridFilter='all',tblFilter='all',sortKey='apt',sortDir=1,selectedApt=null,currentTab='grid',currentBuilding='belanger';
 let dbRef=null;
+// Accès aux données d'un appartement (structure imbriquée : appData[building][num])
+function getD(building,num){return(appData[building]&&appData[building][num])||{};}
+// Apparts du bâtiment courant
+function curApts(){return APTS.filter(a=>a.building===currentBuilding);}
 const SL={available:'Disponible',pending:'En cours',rented:'Loué'};
 const SO={available:0,pending:1,rented:2};
 function fmt(n){return n.toLocaleString('fr-CA',{style:'currency',currency:'CAD',maximumFractionDigits:0});}
@@ -317,7 +460,19 @@ function getSrc(d){let s=[];if(d.srcAim)s.push('AIM Location');if(d.srcRemax)s.p
 function getPromoStr(d){let s=[];if(d.promo1m)s.push('1 mois');if(d.promo2m)s.push('2 mois');if(d.promoAutre&&d.promoAutreVal)s.push(d.promoAutreVal);return s.join(', ');}
 function getPromoArr(d){let s=[];if(d.promo1m)s.push('1 mois');if(d.promo2m)s.push('2 mois');if(d.promoAutre&&d.promoAutreVal)s.push(d.promoAutreVal);return s;}
 function srcCls(d){if(d.srcAim)return'src-aim';if(d.srcRemax)return'src-remax';return'src-autre';}
-function emptyApt(){return{status:'available',customPrice:null,tenant:'',sign:'',movein:'',period:'',promo1m:false,promo2m:false,promoAutre:false,promoAutreVal:'',srcAim:false,srcRemax:false,srcAutre:false,srcAutreVal:'',notes:''};}
+// Total de meubles dans un logement (retourne 0 si non meublé ou données manquantes)
+function getMobTotal(d){
+  if(!d||!d.meuble||!d.mobilier)return 0;
+  const m=d.mobilier;
+  return MOB_TYPES.reduce((sum,t)=>sum+(parseInt(m[t.id])||0),0);
+}
+// Texte détaillé des meubles pour exports (ex: "2 tables, 4 chaises, 1 canapé")
+function getMobStr(d){
+  if(!d||!d.meuble||!d.mobilier)return'';
+  const m=d.mobilier;
+  return MOB_TYPES.filter(t=>(parseInt(m[t.id])||0)>0).map(t=>`${m[t.id]} ${t.label.toLowerCase()}`).join(', ');
+}
+function emptyApt(){return{status:'available',customPrice:null,renouvellement:null,annonce:null,reloue:null,tenant:'',sign:'',movein:'',period:'',promo1m:false,promo2m:false,promoAutre:false,promoAutreVal:'',srcAim:false,srcRemax:false,srcAutre:false,srcAutreVal:'',notes:'',meuble:false,mobilier:{tables:0,chaises:0,lit_sommier:0,matelas:0,canape:0,meuble_tv:0,table_salon:0,bureau:0,table_chevet:0,voiles:0,tringles:0,accroches:0}};}
 function setConn(type,msg){
   const bar=document.getElementById('conn-bar'),txt=document.getElementById('conn-text');
   bar.className='status-bar conn-'+type;
@@ -328,10 +483,28 @@ function initFirebase(){
     firebase.initializeApp(FIREBASE_CONFIG);
     dbRef=firebase.database().ref('relocations');
     dbRef.on('value',snap=>{
-      const d=snap.val();
-      if(d)appData=d;
-      APTS.forEach(a=>{if(!appData[a.num])appData[a.num]=emptyApt();});
-      setConn('ok');updateStats();renderGrid();if(currentTab==='table')renderTable();
+      const d=snap.val()||{};
+      // Détection ancien format (clés = numéros d'appart directement) vs nouveau (imbriqué par bâtiment)
+      const keys=Object.keys(d);
+      const hasOldFlatKeys=keys.some(k=>/^\d+$/.test(k));
+      const hasBuildingKeys=BUILDINGS.some(b=>d[b.id]&&typeof d[b.id]==='object');
+      if(hasOldFlatKeys&&!hasBuildingKeys){
+        // Migration : toutes les anciennes données (apparts 201-315) appartiennent à Bélanger
+        const belangerData={};
+        keys.forEach(k=>{if(/^\d+$/.test(k))belangerData[k]=d[k];});
+        appData={belanger:belangerData,hopper:{}};
+        dbRef.set(appData);// sauvegarde du nouveau format
+        console.log('Migration : ancien format détecté, données migrées vers le nouveau format imbriqué.');
+      }else{
+        appData=d;
+      }
+      // S'assurer que chaque bâtiment a son objet
+      BUILDINGS.forEach(b=>{if(!appData[b.id])appData[b.id]={};});
+      // Initialiser les apparts manquants
+      APTS.forEach(a=>{if(!appData[a.building][a.num])appData[a.building][a.num]=emptyApt();});
+      setConn('ok');updateStats();renderGrid();
+      if(currentTab==='table')renderTable();
+      if(currentTab==='mobilier')renderMobilier();
     },()=>setConn('err','Erreur — vérifiez votre configuration Firebase'));
     firebase.database().ref('.info/connected').on('value',s=>{
       if(s.val()===true)setConn('ok');else setConn('wait','Reconnexion...');
@@ -339,7 +512,8 @@ function initFirebase(){
   }catch(e){
     setConn('err','Configuration Firebase invalide — vérifiez les paramètres en haut du fichier HTML');
     try{const r=localStorage.getItem('reloc-data');if(r)appData=JSON.parse(r);}catch(e2){}
-    APTS.forEach(a=>{if(!appData[a.num])appData[a.num]=emptyApt();});
+    BUILDINGS.forEach(b=>{if(!appData[b.id])appData[b.id]={};});
+    APTS.forEach(a=>{if(!appData[a.building][a.num])appData[a.building][a.num]=emptyApt();});
     updateStats();renderGrid();
   }
 }
@@ -349,17 +523,31 @@ async function persist(){
 }
 function updateStats(){
   let c={available:0,pending:0,rented:0};
-  APTS.forEach(a=>c[appData[a.num]?.status||'available']++);
+  const apts=curApts();
+  apts.forEach(a=>c[getD(a.building,a.num).status||'available']++);
   document.getElementById('cnt-a').textContent=c.available;
   document.getElementById('cnt-p').textContent=c.pending;
   document.getElementById('cnt-r').textContent=c.rented;
+  const cntEl=document.getElementById('bld-count');
+  if(cntEl)cntEl.textContent=`— ${apts.length} appartement${apts.length>1?'s':''}`;
+}
+// Bascule d'immeuble via le sélecteur
+function changeBuilding(buildingId){
+  currentBuilding=buildingId;
+  selectedApt=null;
+  document.getElementById('detail-view').style.display='none';
+  updateStats();renderGrid();
+  if(currentTab==='table')renderTable();
+  if(currentTab==='mobilier')renderMobilier();
 }
 function showTab(t,el){
   currentTab=t;document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');
   document.getElementById('view-grid').style.display=t==='grid'?'block':'none';
   document.getElementById('view-table').style.display=t==='table'?'block':'none';
+  document.getElementById('view-mobilier').style.display=t==='mobilier'?'block':'none';
   document.getElementById('detail-view').style.display='none';
   if(t==='table')renderTable();
+  if(t==='mobilier')renderMobilier();
 }
 function setGridFilter(f,e){gridFilter=f;document.querySelectorAll('#view-grid .filter-btn').forEach(b=>b.classList.remove('active'));e.target.classList.add('active');renderGrid();}
 function setTblFilter(f,e){tblFilter=f;document.querySelectorAll('#view-table .filter-btn').forEach(b=>b.classList.remove('active'));e.target.classList.add('active');renderTable();}
@@ -371,14 +559,14 @@ function setSort(key){
   renderTable();
 }
 function getSortedRows(){
-  let rows=APTS.filter(a=>tblFilter==='all'||appData[a.num]?.status===tblFilter);
+  let rows=curApts().filter(a=>tblFilter==='all'||getD(a.building,a.num).status===tblFilter);
   return rows.sort((a,b)=>{
     let va,vb;
     if(sortKey==='apt'){va=parseInt(a.num);vb=parseInt(b.num);}
-    else if(sortKey==='movein'){va=appData[a.num]?.movein||'9999';vb=appData[b.num]?.movein||'9999';}
-    else if(sortKey==='sign'){va=appData[a.num]?.sign||'9999';vb=appData[b.num]?.sign||'9999';}
-    else if(sortKey==='source'){va=getSrc(appData[a.num]||{}).toLowerCase();vb=getSrc(appData[b.num]||{}).toLowerCase();}
-    else if(sortKey==='status'){va=SO[appData[a.num]?.status||'available'];vb=SO[appData[b.num]?.status||'available'];}
+    else if(sortKey==='movein'){va=getD(a.building,a.num).movein||'9999';vb=getD(b.building,b.num).movein||'9999';}
+    else if(sortKey==='sign'){va=getD(a.building,a.num).sign||'9999';vb=getD(b.building,b.num).sign||'9999';}
+    else if(sortKey==='source'){va=getSrc(getD(a.building,a.num)).toLowerCase();vb=getSrc(getD(b.building,b.num)).toLowerCase();}
+    else if(sortKey==='status'){va=SO[getD(a.building,a.num).status||'available'];vb=SO[getD(b.building,b.num).status||'available'];}
     else{va=parseInt(a.num);vb=parseInt(b.num);}
     if(va<vb)return -sortDir;if(va>vb)return sortDir;return 0;
   });
@@ -386,18 +574,26 @@ function getSortedRows(){
 function renderGrid(){
   const c=document.getElementById('apt-container');c.innerHTML='';
   ['Studio','3 ½','4 ½','5 ½'].forEach(type=>{
-    const group=APTS.filter(a=>a.type===type&&(gridFilter==='all'||appData[a.num]?.status===gridFilter));
+    const group=curApts().filter(a=>a.type===type&&(gridFilter==='all'||getD(a.building,a.num).status===gridFilter));
     if(!group.length)return;
     const h=document.createElement('div');h.className='sec-title';h.textContent=type;c.appendChild(h);
     const g=document.createElement('div');g.className='apt-grid';
     group.forEach(a=>{
-      const d=appData[a.num]||{};const s=d.status||'available';const src=getSrc(d);
+      const d=getD(a.building,a.num);const s=d.status||'available';const src=getSrc(d);const mobTotal=getMobTotal(d);
+      // Bloc prix supplémentaires : affiché seulement si au moins un des 3 est renseigné
+      const hasExtras=d.renouvellement||d.annonce||d.reloue;
+      const extrasHtml=hasExtras?`<div class="apt-extras">
+        ${d.renouvellement?`<div class="xrow"><span class="xlbl">Renouv.</span><span class="xval">${fmt(d.renouvellement)}</span></div>`:''}
+        ${d.annonce?`<div class="xrow"><span class="xlbl">Annoncé</span><span class="xval">${fmt(d.annonce)}</span></div>`:''}
+        ${d.reloue?`<div class="xrow"><span class="xlbl">Reloué</span><span class="xval">${fmt(d.reloue)}</span></div>`:''}
+      </div>`:'';
       const card=document.createElement('div');card.className='apt-card '+s;
       card.innerHTML=`<div class="sdot dot-${s}"></div>
         <div class="apt-num">Apt ${a.num}</div><div class="apt-meta">Étage ${a.floor} · ${a.type}</div>
-        <div class="apt-size">${a.size} pi²</div><div class="apt-price">${fmt(d.customPrice||a.price)}/mois</div>
+        <div class="apt-size">${a.size?a.size+' pi²':'— pi²'}</div><div class="apt-price">${fmt(d.customPrice||a.price)}/mois</div>
+        ${extrasHtml}
         ${d.tenant?`<div class="apt-tenant">${d.tenant}</div>`:''}
-        ${src?`<div class="apt-src ${srcCls(d)}">${src}</div>`:''}`;
+        <div>${src?`<span class="apt-src ${srcCls(d)}">${src}</span>`:''}${d.meuble?`<span class="apt-meuble">Meublé${mobTotal?' ('+mobTotal+')':''}</span>`:''}</div>`;
       card.onclick=()=>openDetail(a.num);g.appendChild(card);
     });
     c.appendChild(g);
@@ -405,9 +601,9 @@ function renderGrid(){
 }
 function renderTable(){
   const rows=getSortedRows(),body=document.getElementById('tbl-body');body.innerHTML='';
-  if(!rows.length){const tr=document.createElement('tr');tr.className='empty-row';tr.innerHTML=`<td colspan="12">Aucun appartement</td>`;body.appendChild(tr);return;}
+  if(!rows.length){const tr=document.createElement('tr');tr.className='empty-row';tr.innerHTML=`<td colspan="13">Aucun appartement</td>`;body.appendChild(tr);return;}
   rows.forEach(a=>{
-    const d=appData[a.num]||{},promos=getPromoArr(d),src=getSrc(d),s=d.status||'available';
+    const d=getD(a.building,a.num),promos=getPromoArr(d),src=getSrc(d),s=d.status||'available',mobTotal=getMobTotal(d),mobStr=getMobStr(d);
     const tr=document.createElement('tr');
     tr.innerHTML=`<td><strong>${a.num}</strong></td><td>${a.type}</td><td>${a.floor}</td><td>${fmt(d.customPrice||a.price)}</td>
       <td><span class="badge badge-${s}">${SL[s]}</span></td>
@@ -415,42 +611,169 @@ function renderTable(){
       <td class="${d.sign?'':'muted'}">${d.sign?fmtD(d.sign):'—'}</td>
       <td class="${d.movein?'':'muted'}">${d.movein?fmtD(d.movein):'—'}</td>
       <td class="${d.period?'':'muted'}">${d.period||'—'}</td>
+      <td class="${d.meuble?'':'muted'}">${d.meuble?`<span class="badge badge-meuble" title="${mobStr||'aucun détail'}">Oui${mobTotal?' ('+mobTotal+')':''}</span>`:'—'}</td>
       <td>${promos.length?promos.map(p=>`<span class="promo-tag">${p}</span>`).join(''):'<span class="muted">—</span>'}</td>
       <td class="${src?'':'muted'}">${src||'—'}</td>
       <td class="${d.notes?'':'muted'}" style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${d.notes||''}">${d.notes||'—'}</td>`;
     tr.onclick=()=>openDetail(a.num);body.appendChild(tr);
   });
 }
+function curBuildingName(){const b=BUILDINGS.find(x=>x.id===currentBuilding);return b?b.name:'';}
+function fileSuffix(){return curBuildingName().toLowerCase().replace(/\s+/g,'-')+'-'+new Date().toLocaleDateString('fr-CA').replace(/\//g,'-');}
 function getExportRows(){
-  return getSortedRows().map(a=>{const d=appData[a.num]||{};return{'Apt':a.num,'Type':a.type,'Étage':a.floor,'Loyer ($/mois)':d.customPrice||a.price,'Statut':SL[d.status||'available'],'Locataire':d.tenant||'','Date signature':d.sign?fmtD(d.sign):'','Date emménagement':d.movein?fmtD(d.movein):'','Période bail':d.period||'','Promotions':getPromoStr(d)||'','Loué par':getSrc(d)||'','Notes':d.notes||''};});
+  return getSortedRows().map(a=>{const d=getD(a.building,a.num);return{'Apt':a.num,'Type':a.type,'Étage':a.floor,'Loyer ($/mois)':d.customPrice||a.price,'Statut':SL[d.status||'available'],'Locataire':d.tenant||'','Date signature':d.sign?fmtD(d.sign):'','Date emménagement':d.movein?fmtD(d.movein):'','Période bail':d.period||'','Meublé':d.meuble?`Oui (${getMobTotal(d)})`:'Non','Détail mobilier':getMobStr(d),'Promotions':getPromoStr(d)||'','Loué par':getSrc(d)||'','Notes':d.notes||''};});
 }
 function exportExcel(){
   const btn=document.getElementById('btn-xlsx');btn.textContent='⏳...';
-  try{const ws=XLSX.utils.json_to_sheet(getExportRows());ws['!cols']=[{wch:6},{wch:8},{wch:7},{wch:14},{wch:12},{wch:22},{wch:14},{wch:16},{wch:12},{wch:16},{wch:16},{wch:28}];const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Relocations');XLSX.writeFile(wb,`relocations-${new Date().toLocaleDateString('fr-CA').replace(/\//g,'-')}.xlsx`);}catch(e){alert('Erreur: '+e.message);}
+  try{const ws=XLSX.utils.json_to_sheet(getExportRows());ws['!cols']=[{wch:6},{wch:8},{wch:7},{wch:14},{wch:12},{wch:22},{wch:14},{wch:16},{wch:12},{wch:12},{wch:30},{wch:16},{wch:16},{wch:28}];const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Relocations');XLSX.writeFile(wb,`relocations-${fileSuffix()}.xlsx`);}catch(e){alert('Erreur: '+e.message);}
   btn.textContent='↓ Excel';
 }
 function exportPDF(){
   const btn=document.getElementById('btn-pdf');btn.textContent='⏳...';
   try{
     const{jsPDF}=window.jspdf,doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'}),date=new Date().toLocaleDateString('fr-CA');
-    doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text('Suivi des Relocations',14,16);
+    doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text('Suivi des Relocations — '+curBuildingName(),14,16);
     doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(120);doc.text(`Généré le ${date}`,14,22);
-    const cnt={available:0,pending:0,rented:0};APTS.forEach(a=>cnt[appData[a.num]?.status||'available']++);
-    doc.setTextColor(60);doc.text(`Disponibles: ${cnt.available}   En cours: ${cnt.pending}   Loués: ${cnt.rented}   Total: ${APTS.length}`,14,28);
-    doc.autoTable({head:[['Apt','Type','Étage','Loyer/mois','Statut','Locataire','Signature','Emménagement','Bail','Promotion','Loué par','Notes']],body:getExportRows().map(r=>Object.values(r).map(v=>String(v===0?'0':v||''))),startY:33,styles:{fontSize:8,cellPadding:2.5,overflow:'ellipsize'},headStyles:{fillColor:[30,30,28],textColor:255,fontStyle:'bold'},columnStyles:{0:{cellWidth:12},1:{cellWidth:14},2:{cellWidth:12},3:{cellWidth:20},4:{cellWidth:20},5:{cellWidth:28},6:{cellWidth:22},7:{cellWidth:24},8:{cellWidth:18},9:{cellWidth:20},10:{cellWidth:22},11:{cellWidth:'auto'}},alternateRowStyles:{fillColor:[248,248,246]},didParseCell(d){if(d.column.index===4&&d.section==='body'){const m={Disponible:[59,109,17],'En cours':[133,79,11],Loué:[163,45,45]};const c=m[d.cell.raw];if(c){d.cell.styles.textColor=c;d.cell.styles.fontStyle='bold';}}},margin:{left:14,right:14}});
+    const cnt={available:0,pending:0,rented:0};curApts().forEach(a=>cnt[getD(a.building,a.num).status||'available']++);
+    doc.setTextColor(60);doc.text(`Disponibles: ${cnt.available}   En cours: ${cnt.pending}   Loués: ${cnt.rented}   Total: ${curApts().length}`,14,28);
+    // Pour le PDF on n'inclut pas la colonne "Détail mobilier" (trop large) — juste Oui/Non
+    const pdfRows=getSortedRows().map(a=>{const d=getD(a.building,a.num);return[a.num,a.type,a.floor,d.customPrice||a.price,SL[d.status||'available'],d.tenant||'',d.sign?fmtD(d.sign):'',d.movein?fmtD(d.movein):'',d.period||'',d.meuble?`Oui (${getMobTotal(d)})`:'—',getPromoStr(d)||'',getSrc(d)||'',d.notes||''];});
+    doc.autoTable({head:[['Apt','Type','Étage','Loyer/mois','Statut','Locataire','Signature','Emménagement','Bail','Meublé','Promotion','Loué par','Notes']],body:pdfRows.map(r=>r.map(v=>String(v===0?'0':v||''))),startY:33,styles:{fontSize:8,cellPadding:2.5,overflow:'ellipsize'},headStyles:{fillColor:[30,30,28],textColor:255,fontStyle:'bold'},columnStyles:{0:{cellWidth:11},1:{cellWidth:13},2:{cellWidth:11},3:{cellWidth:19},4:{cellWidth:19},5:{cellWidth:26},6:{cellWidth:20},7:{cellWidth:22},8:{cellWidth:16},9:{cellWidth:17},10:{cellWidth:19},11:{cellWidth:21},12:{cellWidth:'auto'}},alternateRowStyles:{fillColor:[248,248,246]},didParseCell(d){if(d.column.index===4&&d.section==='body'){const m={Disponible:[59,109,17],'En cours':[133,79,11],Loué:[163,45,45]};const c=m[d.cell.raw];if(c){d.cell.styles.textColor=c;d.cell.styles.fontStyle='bold';}}},margin:{left:14,right:14}});
     const pages=doc.internal.getNumberOfPages();for(let i=1;i<=pages;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(150);doc.text(`Page ${i}/${pages}`,doc.internal.pageSize.width-20,doc.internal.pageSize.height-8);}
-    doc.save(`relocations-${new Date().toLocaleDateString('fr-CA').replace(/\//g,'-')}.pdf`);
+    doc.save(`relocations-${fileSuffix()}.pdf`);
+  }catch(e){alert('Erreur: '+e.message);}
+  btn.textContent='↓ PDF';
+}
+// Affiche/masque la liste des meubles selon la case "Logement meublé"
+function toggleMobilier(){
+  const cb=document.getElementById('f-meuble');
+  document.getElementById('mobilier-wrap').style.display=cb.checked?'block':'none';
+}
+// Récap mobilier : ne prend que les appartements meublés.
+// Le total à commander ne somme que les logements 'pending' (en cours) + 'rented' (loués).
+function getMobilierData(){
+  const meublés=curApts().filter(a=>getD(a.building,a.num).meuble).map(a=>{
+    const d=getD(a.building,a.num);
+    const m=d.mobilier||{};
+    const qt={};MOB_TYPES.forEach(t=>qt[t.id]=parseInt(m[t.id])||0);
+    const total=MOB_TYPES.reduce((s,t)=>s+qt[t.id],0);
+    return{apt:a,data:d,qt:qt,total:total};
+  });
+  meublés.sort((a,b)=>parseInt(a.apt.num)-parseInt(b.apt.num));
+  // Totaux : TOUS (tous les logements meublés) et À COMMANDER (en cours + loués uniquement)
+  const totAll={},totCmd={};
+  MOB_TYPES.forEach(t=>{totAll[t.id]=0;totCmd[t.id]=0;});
+  meublés.forEach(r=>{
+    MOB_TYPES.forEach(t=>{
+      totAll[t.id]+=r.qt[t.id];
+      if(r.data.status==='pending'||r.data.status==='rented')totCmd[t.id]+=r.qt[t.id];
+    });
+  });
+  return{rows:meublés,totAll:totAll,totCmd:totCmd};
+}
+function renderMobilier(){
+  const{rows,totAll,totCmd}=getMobilierData();
+  const body=document.getElementById('mob-body'),foot=document.getElementById('mob-foot');
+  body.innerHTML='';foot.innerHTML='';
+  if(!rows.length){
+    body.innerHTML=`<tr class="empty-row"><td colspan="17">Aucun logement meublé pour le moment</td></tr>`;
+    return;
+  }
+  rows.forEach(r=>{
+    const s=r.data.status||'available';
+    const tr=document.createElement('tr');
+    const cells=MOB_TYPES.map(t=>`<td style="text-align:center" class="${r.qt[t.id]?'':'muted'}">${r.qt[t.id]||'—'}</td>`).join('');
+    tr.innerHTML=`<td><strong>${r.apt.num}</strong></td><td>${r.apt.type}</td><td>${r.apt.floor}</td>
+      <td><span class="badge badge-${s}">${SL[s]}</span></td>
+      ${cells}
+      <td style="text-align:center;font-weight:700">${r.total}</td>`;
+    tr.onclick=()=>openDetail(r.apt.num);
+    tr.style.cursor='pointer';
+    body.appendChild(tr);
+  });
+  // Pied de tableau : deux lignes de totaux
+  const cellsAll=MOB_TYPES.map(t=>`<td style="text-align:center">${totAll[t.id]||'—'}</td>`).join('');
+  const cellsCmd=MOB_TYPES.map(t=>`<td style="text-align:center;font-weight:700;color:var(--b)">${totCmd[t.id]||'—'}</td>`).join('');
+  const totAllSum=MOB_TYPES.reduce((s,t)=>s+totAll[t.id],0);
+  const totCmdSum=MOB_TYPES.reduce((s,t)=>s+totCmd[t.id],0);
+  foot.innerHTML=`
+    <tr style="background:var(--bg2);border-top:2px solid var(--bd2)">
+      <td colspan="4" style="font-weight:700">Total (tous meublés)</td>
+      ${cellsAll}
+      <td style="text-align:center;font-weight:700">${totAllSum}</td>
+    </tr>
+    <tr style="background:var(--b-bg);color:var(--b)">
+      <td colspan="4" style="font-weight:700">À commander (en cours + loués)</td>
+      ${cellsCmd}
+      <td style="text-align:center;font-weight:700">${totCmdSum}</td>
+    </tr>`;
+}
+function getMobilierExportRows(){
+  const{rows}=getMobilierData();
+  return rows.map(r=>{
+    const row={'Apt':r.apt.num,'Type':r.apt.type,'Étage':r.apt.floor,'Statut':SL[r.data.status||'available']};
+    MOB_TYPES.forEach(t=>{row[t.label]=r.qt[t.id]||0;});
+    row['Total']=r.total;
+    return row;
+  });
+}
+function exportMobilierExcel(){
+  const btn=document.getElementById('btn-mob-xlsx');btn.textContent='⏳...';
+  try{
+    const{rows,totAll,totCmd}=getMobilierData();
+    const data=getMobilierExportRows();
+    // Ligne de séparation + totaux
+    const rowAll={'Apt':'TOTAL (tous meublés)','Type':'','Étage':'','Statut':''};
+    MOB_TYPES.forEach(t=>{rowAll[t.label]=totAll[t.id];});
+    rowAll['Total']=MOB_TYPES.reduce((s,t)=>s+totAll[t.id],0);
+    const rowCmd={'Apt':'À COMMANDER (en cours + loués)','Type':'','Étage':'','Statut':''};
+    MOB_TYPES.forEach(t=>{rowCmd[t.label]=totCmd[t.id];});
+    rowCmd['Total']=MOB_TYPES.reduce((s,t)=>s+totCmd[t.id],0);
+    data.push({},rowAll,rowCmd);
+    const ws=XLSX.utils.json_to_sheet(data);
+    ws['!cols']=[{wch:30},{wch:8},{wch:7},{wch:12},{wch:9},{wch:9},{wch:11},{wch:9},{wch:9},{wch:11},{wch:11},{wch:9},{wch:11},{wch:8},{wch:9},{wch:10},{wch:8}];
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Mobilier');
+    XLSX.writeFile(wb,`mobilier-${fileSuffix()}.xlsx`);
+  }catch(e){alert('Erreur: '+e.message);}
+  btn.textContent='↓ Excel';
+}
+function exportMobilierPDF(){
+  const btn=document.getElementById('btn-mob-pdf');btn.textContent='⏳...';
+  try{
+    const{jsPDF}=window.jspdf,doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'}),date=new Date().toLocaleDateString('fr-CA');
+    doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text('Récapitulatif du mobilier — '+curBuildingName(),14,16);
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(120);doc.text(`Généré le ${date}`,14,22);
+    const{rows,totAll,totCmd}=getMobilierData();
+    doc.setTextColor(60);doc.text(`${rows.length} logement(s) meublé(s)`,14,28);
+    const head=[['Apt','Type','Étage','Statut',...MOB_TYPES.map(t=>t.label),'Total']];
+    const body=rows.map(r=>[r.apt.num,r.apt.type,r.apt.floor,SL[r.data.status||'available'],...MOB_TYPES.map(t=>r.qt[t.id]||0),r.total]);
+    const rowAll=['TOTAL (tous meublés)','','','',...MOB_TYPES.map(t=>totAll[t.id]),MOB_TYPES.reduce((s,t)=>s+totAll[t.id],0)];
+    const rowCmd=['À COMMANDER (en cours + loués)','','','',...MOB_TYPES.map(t=>totCmd[t.id]),MOB_TYPES.reduce((s,t)=>s+totCmd[t.id],0)];
+    body.push(rowAll,rowCmd);
+    doc.autoTable({head:head,body:body.map(r=>r.map(v=>String(v===0?'0':v||''))),startY:33,styles:{fontSize:7.5,cellPadding:2,halign:'center'},headStyles:{fillColor:[30,30,28],textColor:255,fontStyle:'bold',halign:'center',fontSize:7.5},columnStyles:{0:{halign:'left',fontStyle:'bold',cellWidth:38},1:{halign:'left'},3:{halign:'left'}},didParseCell(d){
+      if(d.section==='body'){
+        const isLast=d.row.index===body.length-1;
+        const isBeforeLast=d.row.index===body.length-2;
+        if(isBeforeLast){d.cell.styles.fillColor=[245,245,242];d.cell.styles.fontStyle='bold';}
+        if(isLast){d.cell.styles.fillColor=[230,241,251];d.cell.styles.textColor=[24,95,165];d.cell.styles.fontStyle='bold';}
+      }
+    },margin:{left:14,right:14}});
+    const pages=doc.internal.getNumberOfPages();for(let i=1;i<=pages;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(150);doc.text(`Page ${i}/${pages}`,doc.internal.pageSize.width-20,doc.internal.pageSize.height-8);}
+    doc.save(`mobilier-${fileSuffix()}.pdf`);
   }catch(e){alert('Erreur: '+e.message);}
   btn.textContent='↓ PDF';
 }
 function openDetail(num){
-  selectedApt=num;const a=APTS.find(x=>x.num===num),d=appData[num]||{};
+  selectedApt=num;const a=curApts().find(x=>x.num===num),d=getD(currentBuilding,num);
   document.getElementById('d-apt').textContent='Appartement '+num;
   document.getElementById('d-type').textContent=`${a.type} · Étage ${a.floor}`;
   document.getElementById('d-price').textContent=fmt(d.customPrice||a.price)+'/mois';
   document.getElementById('f-price').value=d.customPrice||a.price;
   document.getElementById('f-price-hint').textContent=`Prix de base : ${fmt(a.price)}/mois`;
-  document.getElementById('d-size').textContent=a.size+' pi²';
+  document.getElementById('f-renouvellement').value=d.renouvellement||'';
+  document.getElementById('f-annonce').value=d.annonce||'';
+  document.getElementById('f-reloue').value=d.reloue||'';
+  document.getElementById('d-size').textContent=(a.size?a.size:'—')+' pi²';
   document.getElementById('f-tenant').value=d.tenant||'';
   document.getElementById('f-sign').value=d.sign||'';
   document.getElementById('f-movein').value=d.movein||'';
@@ -465,24 +788,60 @@ function openDetail(num){
   document.getElementById('src-autre').checked=!!d.srcAutre;
   document.getElementById('src-autre-val').value=d.srcAutreVal||'';
   document.getElementById('src-autre-wrap').style.display=d.srcAutre?'block':'none';
+  // Mobilier : récupère les valeurs si elles existent, 0 sinon (anciens logements sans ces données)
+  document.getElementById('f-meuble').checked=!!d.meuble;
+  const mob=d.mobilier||{};
+  MOB_TYPES.forEach(t=>{document.getElementById('mob-'+t.id).value=parseInt(mob[t.id])||0;});
+  document.getElementById('mobilier-wrap').style.display=d.meuble?'block':'none';
   document.getElementById('f-notes').value=d.notes||'';
   document.getElementById('detail-save-msg').textContent='';
   updateStBtns(d.status||'available');
   document.getElementById('view-grid').style.display='none';
   document.getElementById('view-table').style.display='none';
+  document.getElementById('view-mobilier').style.display='none';
   document.getElementById('detail-view').style.display='block';
 }
 function updateStBtns(s){['available','pending','rented'].forEach(x=>{document.getElementById('st-'+x).className='stbtn'+(s===x?' sel-'+x:'');});}
-function setStatus(s){if(selectedApt)appData[selectedApt].status=s;updateStBtns(s);}
+function setStatus(s){if(selectedApt)appData[currentBuilding][selectedApt].status=s;updateStats();updateStBtns(s);}
 function closeDetail(){
   document.getElementById('detail-view').style.display='none';
   document.getElementById('view-grid').style.display=currentTab==='grid'?'block':'none';
   document.getElementById('view-table').style.display=currentTab==='table'?'block':'none';
-  selectedApt=null;updateStats();renderGrid();if(currentTab==='table')renderTable();
+  document.getElementById('view-mobilier').style.display=currentTab==='mobilier'?'block':'none';
+  selectedApt=null;updateStats();renderGrid();
+  if(currentTab==='table')renderTable();
+  if(currentTab==='mobilier')renderMobilier();
 }
 async function saveDetail(){
   if(!selectedApt)return;
-  appData[selectedApt]={status:appData[selectedApt]?.status||'available',customPrice:parseInt(document.getElementById('f-price').value)||null,tenant:document.getElementById('f-tenant').value,sign:document.getElementById('f-sign').value,movein:document.getElementById('f-movein').value,period:document.getElementById('f-period').value,promo1m:document.getElementById('promo-1m').checked,promo2m:document.getElementById('promo-2m').checked,promoAutre:document.getElementById('promo-autre').checked,promoAutreVal:document.getElementById('promo-autre-val').value,srcAim:document.getElementById('src-aim').checked,srcRemax:document.getElementById('src-remax').checked,srcAutre:document.getElementById('src-autre').checked,srcAutreVal:document.getElementById('src-autre-val').value,notes:document.getElementById('f-notes').value};
+  // Construction de l'objet mobilier à partir des champs de quantité
+  const mobilier={};
+  MOB_TYPES.forEach(t=>{mobilier[t.id]=parseInt(document.getElementById('mob-'+t.id).value)||0;});
+  // On préserve TOUTES les données existantes et on ajoute/met à jour les champs du formulaire
+  if(!appData[currentBuilding])appData[currentBuilding]={};
+  appData[currentBuilding][selectedApt]={
+    ...(appData[currentBuilding][selectedApt]||{}),
+    status:appData[currentBuilding][selectedApt]?.status||'available',
+    customPrice:parseInt(document.getElementById('f-price').value)||null,
+    renouvellement:parseInt(document.getElementById('f-renouvellement').value)||null,
+    annonce:parseInt(document.getElementById('f-annonce').value)||null,
+    reloue:parseInt(document.getElementById('f-reloue').value)||null,
+    tenant:document.getElementById('f-tenant').value,
+    sign:document.getElementById('f-sign').value,
+    movein:document.getElementById('f-movein').value,
+    period:document.getElementById('f-period').value,
+    promo1m:document.getElementById('promo-1m').checked,
+    promo2m:document.getElementById('promo-2m').checked,
+    promoAutre:document.getElementById('promo-autre').checked,
+    promoAutreVal:document.getElementById('promo-autre-val').value,
+    srcAim:document.getElementById('src-aim').checked,
+    srcRemax:document.getElementById('src-remax').checked,
+    srcAutre:document.getElementById('src-autre').checked,
+    srcAutreVal:document.getElementById('src-autre-val').value,
+    meuble:document.getElementById('f-meuble').checked,
+    mobilier:mobilier,
+    notes:document.getElementById('f-notes').value
+  };
   await persist();
   const m=document.getElementById('detail-save-msg');m.textContent='Sauvegardé et synchronisé ✓';setTimeout(()=>m.textContent='',2500);
 }
@@ -506,14 +865,27 @@ function restoreData(event){
   reader.onload=async e=>{
     try{
       const backup=JSON.parse(e.target.result);
-      const data=backup.data||backup;
+      let data=backup.data||backup;
       if(!data||typeof data!=='object')throw new Error('Format invalide');
-      const nb=Object.keys(data).length;
+      // Détecter ancien format (clés = numéros d'appart) et migrer vers Bélanger
+      const keys=Object.keys(data);
+      const hasOldFlatKeys=keys.some(k=>/^\d+$/.test(k));
+      const hasBuildingKeys=BUILDINGS.some(b=>data[b.id]&&typeof data[b.id]==='object');
+      if(hasOldFlatKeys&&!hasBuildingKeys){
+        const belangerData={};
+        keys.forEach(k=>{if(/^\d+$/.test(k))belangerData[k]=data[k];});
+        data={belanger:belangerData,hopper:{}};
+      }
+      // Compter le total d'apparts pour la confirmation
+      let nb=0;BUILDINGS.forEach(b=>{if(data[b.id])nb+=Object.keys(data[b.id]).length;});
       if(!confirm(`Restaurer ${nb} appartements depuis la sauvegarde du ${backup.date?new Date(backup.date).toLocaleDateString('fr-CA'):'?'} ?\n\nCela remplacera toutes les données actuelles.`))return;
       appData=data;
+      BUILDINGS.forEach(b=>{if(!appData[b.id])appData[b.id]={};});
       await persist();
       showBackupMsg(`${nb} appartements restaurés avec succès ✓`,'var(--g)');
-      updateStats();renderGrid();if(currentTab==='table')renderTable();
+      updateStats();renderGrid();
+      if(currentTab==='table')renderTable();
+      if(currentTab==='mobilier')renderMobilier();
     }catch(err){showBackupMsg('Fichier invalide — utilisez une sauvegarde .json générée par ce site','var(--rd)');}
     event.target.value='';
   };
